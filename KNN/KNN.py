@@ -1,5 +1,7 @@
 from scipy.io.matlab.mio import loadmat
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler,Normalizer
 from sklearn.metrics import accuracy_score
 from scipy import io
 import os
@@ -13,7 +15,7 @@ def load_data(folder,domain):
     :param domain: 域
     :type domain: string
     '''
-    data = io.loadmat(os.path.join(folder,domain+'_fc6.mat'))
+    data = io.loadmat(os.path.join(folder,domain+'_fc7.mat'))
     return data['fts'],data['labels']
 
 def knn_classify(Xs,Ys,Xt,Yt,k=1):
@@ -30,10 +32,11 @@ def knn_classify(Xs,Ys,Xt,Yt,k=1):
     :param k: k近邻的超参数 defaults to 1
     :type k: int, optional
     '''
-    model = KNeighborsClassifier(n_neighbors=k)
     Ys = Ys.ravel()
     Yt = Yt.ravel()
-    model.fit(Xs,Ys)
+    # model = KNeighborsClassifier(n_neighbors=k).fit(Xs,Ys)
+    model = make_pipeline(Normalizer(),KNeighborsClassifier(n_neighbors=k)).fit(Xs,Ys)
+
     acc = accuracy_score(model.predict(Xt),Yt)
     print("Accurary using KNN: {:.2f}%".format(acc*100))
 
@@ -47,4 +50,5 @@ Xt,Yt=load_data(folder,tar_domain)
 print('Source:',src_domain,Xs.shape,Ys.shape)
 print('Target:',tar_domain,Xt.shape,Yt.shape)
 
-knn_classify(Xs,Ys,Xt,Yt,5)
+
+print([knn_classify(Xs,Ys,Xt,Yt,i) for i in range(1,100)])
